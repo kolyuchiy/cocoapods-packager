@@ -78,6 +78,7 @@ module Pod
         newspec = builder.spec_metadata
 
         @spec.available_platforms.each do |platform|
+          next unless platform.name == :ios
           build_in_sandbox(platform)
 
           newspec += builder.spec_platform(platform)

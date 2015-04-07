@@ -50,7 +50,7 @@ module Pod
     :private
 
     def build_library(platform, defines, output)
-      static_libs = static_libs_in_sandbox
+      static_libs = static_lib_pod_only_in_sandbox
 
       if platform.name == :ios
         build_static_lib_for_ios(static_libs, defines, output)
@@ -64,7 +64,7 @@ module Pod
       `libtool -static -o #{@sandbox_root}/build/package.a #{static_libs.join(' ')}`
 
       xcodebuild(defines, '-sdk iphonesimulator', 'build-sim')
-      sim_libs = static_libs_in_sandbox('build-sim')
+      sim_libs = static_lib_pod_only_in_sandbox('build-sim')
       `libtool -static -o #{@sandbox_root}/build-sim/package.a #{sim_libs.join(' ')}`
 
       `lipo #{@sandbox_root}/build/package.a #{@sandbox_root}/build-sim/package.a -create -output #{output}`
@@ -164,6 +164,12 @@ MAP
       path_specs.map do |path_spec|
         Dir.glob(File.join(@source_dir, path_spec))
       end
+    end
+
+    def static_lib_pod_only_in_sandbox(build_dir = 'build')
+      static_libs_in_sandbox(build_dir).select { |l|
+        l =~ /libPods-#{Regexp.quote(@spec.name)}\.a/
+      }
     end
 
     def static_libs_in_sandbox(build_dir = 'build')

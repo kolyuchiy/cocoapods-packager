@@ -3,7 +3,7 @@ module Pod
     class Package < Command
       :private
 
-      def install_pod(platform_name)
+      def install_pod(platform_name, source_dir)
         podfile = podfile_from_spec(
           File.basename(@path),
           @spec.name,
@@ -11,6 +11,7 @@ module Pod
           @spec.deployment_target(platform_name),
           @subspecs,
           @spec_sources,
+          source_dir
         )
 
         sandbox = Sandbox.new(config.sandbox_root)
@@ -21,6 +22,8 @@ module Pod
           installer.pods_project.targets.each do |target|
             target.build_configurations.each do |config|
               config.build_settings['CLANG_MODULES_AUTOLINK'] = 'NO'
+              config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
+              config.build_settings['GCC_PRECOMPILE_PREFIX_HEADER'] = 'NO'
             end
           end
           installer.pods_project.save
@@ -29,17 +32,17 @@ module Pod
         sandbox
       end
 
-      def podfile_from_spec(path, spec_name, platform_name, deployment_target, subspecs, sources)
+      def podfile_from_spec(path, spec_name, platform_name, deployment_target, subspecs, sources, source_dir)
         Pod::Podfile.new do
           sources.each { |s| source s }
           platform(platform_name, deployment_target)
           if path
             if subspecs
               subspecs.each do |subspec|
-                pod spec_name + '/' + subspec, :podspec => path
+                pod spec_name + '/' + subspec, :path => source_dir
               end
             else
-              pod spec_name, :podspec => path
+              pod spec_name, :path => source_dir
             end
           else
             if subspecs

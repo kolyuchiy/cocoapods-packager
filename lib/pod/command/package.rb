@@ -65,7 +65,7 @@ module Pod
         config.integrate_targets  = false
         config.skip_repo_update   = true
 
-        sandbox = install_pod(platform.name)
+        sandbox = install_pod(platform.name, @source_dir)
 
         perform_build(platform, sandbox)
 

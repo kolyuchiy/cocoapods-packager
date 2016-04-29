@@ -163,7 +163,11 @@ module Pod
     end
 
     def xcodebuild(defines = '', args = '', build_dir = 'build')
-      `xcodebuild #{defines} CONFIGURATION_BUILD_DIR=#{build_dir} clean build #{args} -configuration Release -target Pods -project #{@sandbox_root}/Pods.xcodeproj 2>&1`
+      output = `xcodebuild #{defines} CONFIGURATION_BUILD_DIR=#{build_dir} clean build #{args} -configuration Release -target Pods -project #{@sandbox_root}/Pods.xcodeproj 2>&1`.lines.to_a
+      if $?.exitstatus != 0
+        $stderr.puts(output)
+        Process.exit
+      end
     end
   end
 end
